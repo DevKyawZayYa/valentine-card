@@ -1,0 +1,1078 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Valentine’s Day Card 💌</title>
+
+  <!-- Elegant script font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@400;600&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <!-- Leaflet (Map) -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+
+  <style>
+    :root{
+      --bg1:#140718;
+      --bg2:#2a0a2e;
+      --glass: rgba(255,255,255,.10);
+      --glass2: rgba(255,255,255,.14);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.72);
+      --accent:#ff5aa5;
+      --accent2:#ffd1e7;
+      --shadow: 0 18px 60px rgba(0,0,0,.45);
+
+      /* Border choice */
+      --frame: none;
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      min-height:100vh;
+      color:var(--text);
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      overflow-x:hidden;
+      background:
+        radial-gradient(1200px 700px at 20% 10%, rgba(255,90,165,.16), transparent 55%),
+        radial-gradient(1000px 700px at 80% 30%, rgba(255,209,231,.12), transparent 60%),
+        linear-gradient(160deg, var(--bg1), var(--bg2));
+      position:relative;
+    }
+
+    /* Subtle vignette */
+    body::after{
+      content:"";
+      position:fixed; inset:0;
+      pointer-events:none;
+      background: radial-gradient(circle at 50% 20%, transparent 0 50%, rgba(0,0,0,.35) 80%);
+      mix-blend-mode: multiply;
+    }
+
+    /* Falling hearts canvas */
+    #heartsCanvas{
+      position:fixed;
+      inset:0;
+      width:100%;
+      height:100%;
+      z-index:0;
+      pointer-events:none;
+    }
+
+    .container{
+      position:relative;
+      z-index:1;
+      max-width:1100px;
+      margin:0 auto;
+      padding:24px 16px 60px;
+      display:grid;
+      gap:18px;
+    }
+
+    header{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      padding:16px 18px;
+      border:1px solid rgba(255,255,255,.15);
+      background: linear-gradient(135deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
+      border-radius:18px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .title h1{
+      margin:0;
+      font-family: "Playfair Display", serif;
+      font-weight:600;
+      letter-spacing:.2px;
+      font-size: clamp(20px, 2.4vw, 30px);
+    }
+    .title p{ margin:6px 0 0; color:var(--muted); font-size:14px; }
+
+    .header-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      align-items:center;
+    }
+
+    button, .pill{
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.10);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      transition: transform .08s ease, background .15s ease, border-color .15s ease;
+      user-select:none;
+    }
+    button:hover, .pill:hover{
+      background: rgba(255,255,255,.15);
+      border-color: rgba(255,255,255,.25);
+      transform: translateY(-1px);
+    }
+    button:active{ transform: translateY(0); }
+
+    .pill{
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap:18px;
+    }
+    @media (max-width: 980px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+
+    .card{
+      border:1px solid rgba(255,255,255,.15);
+      background: linear-gradient(135deg, rgba(255,255,255,.11), rgba(255,255,255,.06));
+      border-radius:18px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      padding:16px;
+    }
+
+    .section-title{
+      display:flex; justify-content:space-between; align-items:center;
+      gap:12px;
+      margin-bottom:10px;
+    }
+    .section-title h2{
+      margin:0;
+      font-family:"Playfair Display", serif;
+      font-size:18px;
+      letter-spacing:.2px;
+    }
+    .section-title small{ color:var(--muted); }
+
+    /* Envelope */
+    .envelope-wrap{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:14px;
+      align-items:start;
+    }
+
+    .envelope-stage{
+      position:relative;
+      width:min(520px, 100%);
+      aspect-ratio: 1.65/1;
+      margin: 0 auto;
+      border-radius:22px;
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.16);
+      background:
+        radial-gradient(600px 260px at 10% 10%, rgba(255,90,165,.22), transparent 60%),
+        radial-gradient(500px 260px at 90% 30%, rgba(255,209,231,.18), transparent 60%),
+        linear-gradient(135deg, rgba(255,255,255,.12), rgba(255,255,255,.05));
+      box-shadow: var(--shadow);
+    }
+
+    .env{
+      position:absolute;
+      inset:0;
+      display:grid;
+      place-items:center;
+      padding:18px;
+    }
+
+    .env-shell{
+      position:relative;
+      width:min(460px, 92%);
+      height:min(270px, 78%);
+      margin:auto;
+      border-radius:16px;
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.18);
+      overflow:hidden;
+      transform: translateZ(0);
+    }
+
+    .env-body{
+      position:absolute;
+      inset:0;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.14), rgba(255,255,255,.08));
+    }
+
+    /* Flap */
+    .env-flap{
+      position:absolute;
+      left:0; right:0;
+      top:-8%;
+      height:60%;
+      transform-origin: top center;
+      transform: rotateX(0deg);
+      transition: transform .9s cubic-bezier(.2,.9,.2,1);
+      filter: drop-shadow(0 18px 30px rgba(0,0,0,.18));
+    }
+    .env-flap::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background: linear-gradient(135deg, rgba(255,255,255,.20), rgba(255,255,255,.10));
+      clip-path: polygon(0 0, 100% 0, 50% 100%);
+    }
+
+    /* Letter */
+    .letter{
+      position:absolute;
+      left:7%;
+      right:7%;
+      bottom:10%;
+      height:78%;
+      border-radius:14px;
+      background: rgba(255,255,255,.92);
+      color:#3b1831;
+      transform: translateY(38%) scale(.98);
+      transition: transform .9s cubic-bezier(.2,.9,.2,1);
+      box-shadow: 0 18px 40px rgba(0,0,0,.25);
+      padding:16px 16px 12px;
+      overflow:auto;
+    }
+    .letter h3{
+      margin:0 0 6px;
+      font-family:"Playfair Display", serif;
+      font-size:16px;
+      color:#2a0a2e;
+    }
+    .letter .script{
+      font-family:"Great Vibes", cursive;
+      font-size: 34px;
+      line-height: 1.2;
+      margin: 10px 0 0;
+      white-space: pre-wrap;
+    }
+    .letter .poem{
+      margin-top:10px;
+      font-family:"Playfair Display", serif;
+      font-size:14px;
+      line-height:1.5;
+      color:#3b1831;
+      opacity:.95;
+      white-space: pre-wrap;
+    }
+
+    /* Open state */
+    .envelope-stage.open .env-flap{
+      transform: rotateX(165deg);
+    }
+    .envelope-stage.open .letter{
+      transform: translateY(-4%) scale(1);
+    }
+
+    /* Wax seal */
+    .seal{
+      position:absolute;
+      left:50%;
+      top:56%;
+      transform: translate(-50%,-50%);
+      width:84px;
+      height:84px;
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+      color: rgba(255,255,255,.92);
+      font-weight:700;
+      letter-spacing:.5px;
+      border:1px solid rgba(255,255,255,.25);
+      box-shadow: 0 14px 30px rgba(0,0,0,.25);
+      transition: opacity .25s ease, transform .25s ease;
+      user-select:none;
+    }
+    .seal.hidden{
+      opacity:0;
+      pointer-events:none;
+      transform: translate(-50%,-50%) scale(.85);
+    }
+
+    .seal svg{ width:54px; height:54px; opacity:.95; }
+
+    /* Controls */
+    .controls{
+      display:grid;
+      gap:10px;
+    }
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    input[type="text"], textarea, select{
+      width:100%;
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+      padding:12px 12px;
+      border-radius:12px;
+      outline:none;
+      font-family: inherit;
+    }
+    textarea{ min-height: 92px; resize: vertical; }
+    label{ font-size:13px; color:var(--muted); }
+
+    .countdown{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .countbox{
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.15);
+      background: rgba(255,255,255,.09);
+      min-width: 92px;
+      text-align:center;
+    }
+    .countbox b{ font-size:18px; display:block; }
+    .countbox span{ font-size:12px; color:var(--muted); }
+
+    /* Gallery */
+    .gallery-frame{
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.16);
+      padding:12px;
+      background: rgba(255,255,255,.06);
+      position:relative;
+      overflow:hidden;
+    }
+
+    /* Floral border options via CSS variables (SVG data URIs) */
+    .frame-none{ --frame: none; }
+    .frame-roses{ --frame: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="520" height="520"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="%23ff5aa5"/><stop offset="1" stop-color="%23ffd1e7"/></linearGradient></defs><rect x="10" y="10" width="500" height="500" rx="34" fill="none" stroke="url(%23g)" stroke-width="10"/><g fill="%23ff5aa5" opacity=".85"><circle cx="60" cy="60" r="10"/><circle cx="90" cy="50" r="7"/><circle cx="50" cy="90" r="7"/><circle cx="460" cy="70" r="10"/><circle cx="430" cy="55" r="7"/><circle cx="470" cy="105" r="7"/><circle cx="70" cy="460" r="10"/><circle cx="55" cy="430" r="7"/><circle cx="105" cy="470" r="7"/><circle cx="450" cy="450" r="10"/><circle cx="430" cy="470" r="7"/><circle cx="470" cy="430" r="7"/></g></svg>'); }
+    .frame-lilies{ --frame: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="520" height="520"><rect x="12" y="12" width="496" height="496" rx="34" fill="none" stroke="%23ffd1e7" stroke-width="10"/><g fill="%23ffffff" opacity=".9"><path d="M70 70c20 0 30 20 10 35c20-5 35 10 30 25c-15 0-30-10-40-25c-10 15-25 25-40 25c-5-15 10-30 30-25c-20-15-10-35 10-35z"/><path d="M450 85c20 0 30 20 10 35c20-5 35 10 30 25c-15 0-30-10-40-25c-10 15-25 25-40 25c-5-15 10-30 30-25c-20-15-10-35 10-35z"/><path d="M85 450c20 0 30 20 10 35c20-5 35 10 30 25c-15 0-30-10-40-25c-10 15-25 25-40 25c-5-15 10-30 30-25c-20-15-10-35 10-35z"/><path d="M445 445c20 0 30 20 10 35c20-5 35 10 30 25c-15 0-30-10-40-25c-10 15-25 25-40 25c-5-15 10-30 30-25c-20-15-10-35 10-35z"/></g></svg>'); }
+    .frame-vines{ --frame: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="520" height="520"><rect x="12" y="12" width="496" height="496" rx="34" fill="none" stroke="%23ff5aa5" stroke-width="6" opacity=".9"/><path d="M35 120c70-60 110-40 150 0s80 60 150 0s110-60 150 0" fill="none" stroke="%23ffd1e7" stroke-width="8" opacity=".65"/><path d="M35 400c70 60 110 40 150 0s80-60 150 0s110 60 150 0" fill="none" stroke="%23ffd1e7" stroke-width="8" opacity=".65"/><g fill="%23ff5aa5" opacity=".7"><circle cx="110" cy="110" r="6"/><circle cx="210" cy="150" r="6"/><circle cx="310" cy="110" r="6"/><circle cx="410" cy="150" r="6"/><circle cx="110" cy="410" r="6"/><circle cx="210" cy="370" r="6"/><circle cx="310" cy="410" r="6"/><circle cx="410" cy="370" r="6"/></g></svg>'); }
+
+    .gallery-frame::before{
+      content:"";
+      position:absolute;
+      inset:8px;
+      border-radius:16px;
+      border: 14px solid transparent;
+      background: var(--frame);
+      background-size: cover;
+      background-position:center;
+      -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      padding:18px;
+      pointer-events:none;
+      opacity:.95;
+    }
+
+    .gallery{
+      position:relative;
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:10px;
+      z-index:1;
+    }
+    @media (max-width: 520px){
+      .gallery{ grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .photo{
+      position:relative;
+      border-radius:14px;
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.16);
+      aspect-ratio: 1/1;
+      background: rgba(255,255,255,.08);
+    }
+    .photo img{
+      width:100%; height:100%;
+      object-fit:cover;
+      display:block;
+    }
+    .photo .remove{
+      position:absolute;
+      top:8px; right:8px;
+      border-radius:10px;
+      padding:6px 8px;
+      background: rgba(0,0,0,.35);
+      border:1px solid rgba(255,255,255,.18);
+      font-size:12px;
+    }
+
+    /* Map */
+    #map{
+      width:100%;
+      height: 340px;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.15);
+      overflow:hidden;
+    }
+    .map-hint{
+      color:var(--muted);
+      font-size:13px;
+      margin-top:8px;
+    }
+
+    /* Small helpers */
+    .split{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+    @media (max-width: 720px){
+      .split{ grid-template-columns: 1fr; }
+    }
+    .danger{
+      color: #ffd1e7;
+      opacity:.9;
+      font-size:12px;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="heartsCanvas"></canvas>
+
+  <div class="container">
+    <header>
+      <div class="title">
+        <h1>Valentine’s Day Digital Card</h1>
+        <p>Open the envelope, write your message, add photos, pin memories — and let the hearts fall.</p>
+      </div>
+
+      <div class="header-actions">
+        <div class="pill" title="Countdown to Valentine's Day">
+          <span>⏳</span>
+          <span id="countdownInline">Loading…</span>
+        </div>
+        <button id="musicBtn" aria-pressed="false">🎹 Music: Off</button>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- LEFT: Envelope + Message + Poem + Seals -->
+      <section class="card">
+        <div class="section-title">
+          <h2>💌 Your Message Envelope</h2>
+          <small>Pick a wax seal, lock/unlock, and open it.</small>
+        </div>
+
+        <div class="envelope-wrap">
+          <div class="envelope-stage" id="envelopeStage">
+            <div class="env">
+              <div class="env-shell">
+                <div class="env-body"></div>
+
+                <div class="env-flap"></div>
+
+                <div class="letter" id="letter">
+                  <h3>To my love,</h3>
+                  <div class="script" id="messagePreview">Write something…</div>
+                  <div class="poem" id="poemPreview"></div>
+                </div>
+
+                <div class="seal hidden" id="waxSeal" title="Click to unlock">
+                  <span id="sealIconWrap"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="controls">
+            <div class="split">
+              <div>
+                <label for="yourName">Your name (optional)</label>
+                <input id="yourName" type="text" placeholder="e.g., Kyaw Gyi" />
+              </div>
+              <div>
+                <label for="theirName">Their name (optional)</label>
+                <input id="theirName" type="text" placeholder="e.g., My Love" />
+              </div>
+            </div>
+
+            <div>
+              <label for="messageInput">Type your personalized message</label>
+              <textarea id="messageInput" placeholder="I love you with a certainty so calm, it feels eternal…"></textarea>
+            </div>
+
+            <div class="row">
+              <button id="toggleEnvelopeBtn">Open / Close Envelope</button>
+              <button id="poemBtn">Generate Secret Romantic Poem ✨</button>
+              <span class="danger" id="lockHint"></span>
+            </div>
+
+            <div class="row">
+              <label for="sealSelect" style="min-width:160px;">Wax seal design</label>
+              <select id="sealSelect">
+                <option value="heart">Heart</option>
+                <option value="rose">Rose</option>
+                <option value="initials">Initials</option>
+                <option value="infinity">Infinity</option>
+                <option value="star">Star</option>
+              </select>
+
+              <button id="lockBtn">Lock with Seal</button>
+            </div>
+
+            <div class="countdown" id="countdownBoxes"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT: Gallery + Border + Map Pins -->
+      <section class="card">
+        <div class="section-title">
+          <h2>🌸 Photos & Memory Map</h2>
+          <small>Upload photos and pin locations you love.</small>
+        </div>
+
+        <div class="controls" style="gap:14px;">
+          <div class="row">
+            <label for="borderSelect" style="min-width:160px;">Floral border</label>
+            <select id="borderSelect">
+              <option value="frame-none">None</option>
+              <option value="frame-roses">Roses</option>
+              <option value="frame-lilies">Lilies</option>
+              <option value="frame-vines">Vines</option>
+            </select>
+
+            <label class="pill" style="gap:10px;">
+              📷 Upload photos
+              <input id="photoInput" type="file" accept="image/*" multiple style="display:none;" />
+            </label>
+          </div>
+
+          <div class="gallery-frame frame-roses" id="galleryFrame">
+            <div class="gallery" id="gallery"></div>
+          </div>
+
+          <div class="section-title" style="margin-top:8px;">
+            <h2>🗺️ Virtual Map</h2>
+            <small>Click map to add pins + labels</small>
+          </div>
+          <div id="map"></div>
+          <div class="map-hint">
+            Tip: Click anywhere on the map → add a pin with a sweet label (e.g., “First date”, “That café”, “Our trip”).
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+
+  <script>
+    /*********************
+     * 1) Falling Hearts
+     *********************/
+    const canvas = document.getElementById("heartsCanvas");
+    const ctx = canvas.getContext("2d");
+    const DPR = Math.max(1, window.devicePixelRatio || 1);
+
+    function resizeCanvas(){
+      canvas.width = Math.floor(window.innerWidth * DPR);
+      canvas.height = Math.floor(window.innerHeight * DPR);
+      canvas.style.width = window.innerWidth + "px";
+      canvas.style.height = window.innerHeight + "px";
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    function rand(min, max){ return Math.random()*(max-min)+min; }
+
+    const hearts = [];
+    const HEART_COUNT = 60;
+
+    function makeHeart(){
+      return {
+        x: rand(0, canvas.width),
+        y: rand(-canvas.height, 0),
+        size: rand(10, 26) * DPR,
+        speed: rand(0.6, 2.2) * DPR,
+        sway: rand(0.6, 2.0) * DPR,
+        phase: rand(0, Math.PI*2),
+        rot: rand(-0.5, 0.5),
+        rotSpd: rand(-0.007, 0.007),
+        alpha: rand(0.25, 0.8),
+      };
+    }
+    for(let i=0;i<HEART_COUNT;i++) hearts.push(makeHeart());
+
+    function drawHeart(x,y,s,rot,a){
+      ctx.save();
+      ctx.translate(x,y);
+      ctx.rotate(rot);
+      ctx.globalAlpha = a;
+
+      // gradient fill
+      const g = ctx.createLinearGradient(-s, -s, s, s);
+      g.addColorStop(0, "rgba(255,90,165,.95)");
+      g.addColorStop(1, "rgba(255,209,231,.85)");
+      ctx.fillStyle = g;
+
+      ctx.beginPath();
+      const t = s * 0.11;
+      ctx.moveTo(0, s*0.35);
+      ctx.bezierCurveTo(0, s*0.10, -s*0.55, s*0.10, -s*0.55, s*0.38);
+      ctx.bezierCurveTo(-s*0.55, s*0.68, -s*0.20, s*0.90, 0, s*1.05);
+      ctx.bezierCurveTo(s*0.20, s*0.90, s*0.55, s*0.68, s*0.55, s*0.38);
+      ctx.bezierCurveTo(s*0.55, s*0.10, 0, s*0.10, 0, s*0.35);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    function animateHearts(){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      for(const h of hearts){
+        h.phase += 0.01;
+        h.x += Math.sin(h.phase) * h.sway;
+        h.y += h.speed;
+        h.rot += h.rotSpd;
+
+        drawHeart(h.x, h.y, h.size, h.rot, h.alpha);
+
+        if(h.y > canvas.height + 40*DPR){
+          Object.assign(h, makeHeart(), { y: rand(-200*DPR, -20*DPR) });
+        }
+      }
+      requestAnimationFrame(animateHearts);
+    }
+    animateHearts();
+
+    /*********************
+     * 2) Envelope + Message
+     *********************/
+    const envelopeStage = document.getElementById("envelopeStage");
+    const toggleEnvelopeBtn = document.getElementById("toggleEnvelopeBtn");
+    const messageInput = document.getElementById("messageInput");
+    const messagePreview = document.getElementById("messagePreview");
+    const poemBtn = document.getElementById("poemBtn");
+    const poemPreview = document.getElementById("poemPreview");
+    const yourName = document.getElementById("yourName");
+    const theirName = document.getElementById("theirName");
+
+    const sealSelect = document.getElementById("sealSelect");
+    const lockBtn = document.getElementById("lockBtn");
+    const waxSeal = document.getElementById("waxSeal");
+    const sealIconWrap = document.getElementById("sealIconWrap");
+    const lockHint = document.getElementById("lockHint");
+
+    let isLocked = false;
+
+    function updateMessage(){
+      const a = yourName.value.trim();
+      const b = theirName.value.trim();
+      const body = messageInput.value.trim();
+
+      const prefix =
+        (b ? `My dearest ${b},\n\n` : "") +
+        (body ? body : "Write something…") +
+        (a ? `\n\n— ${a}` : "");
+
+      messagePreview.textContent = prefix;
+    }
+    messageInput.addEventListener("input", updateMessage);
+    yourName.addEventListener("input", updateMessage);
+    theirName.addEventListener("input", updateMessage);
+    updateMessage();
+
+    function setOpen(open){
+      envelopeStage.classList.toggle("open", open);
+    }
+
+    toggleEnvelopeBtn.addEventListener("click", () => {
+      if(isLocked){
+        lockHint.textContent = "It’s sealed 💗 Click the wax seal to unlock first.";
+        return;
+      }
+      lockHint.textContent = "";
+      setOpen(!envelopeStage.classList.contains("open"));
+    });
+
+    /*********************
+     * 3) Poem Generator
+     *********************/
+    const poemBits = {
+      openers: [
+        "Tonight, the world feels softer because of you.",
+        "Every ordinary moment turns golden in your presence.",
+        "I found a quiet forever in the way you love me.",
+        "If love had a sound, it would be your name in my heart.",
+        "You are my favorite place to return to."
+      ],
+      middles: [
+        "I keep our memories like lanterns—glowing even in the darkest days.",
+        "Your kindness is the calm that steadies my storms.",
+        "Even distance can’t thin the thread of us.",
+        "I love you in the small ways: the pauses, the laughs, the simple peace.",
+        "With you, time doesn’t rush—it dances."
+      ],
+      closers: [
+        "So here is my secret: I choose you, again and again, without hesitation.",
+        "My heart is yours—patiently, proudly, completely.",
+        "Let’s keep writing this story with gentle hands and brave love.",
+        "If forever is real, I want it to look like us.",
+        "Stay—until love becomes the air we breathe."
+      ],
+      vows: [
+        "I’ll be your safe place and your wild adventure.",
+        "I’ll hold your dreams like they’re holy.",
+        "I’ll love you with a calm certainty — the kind that doesn’t fade.",
+        "I’ll choose you in every season, in every version of tomorrow.",
+        "I’ll keep showing up, even when the world is loud."
+      ]
+    };
+
+    function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+    poemBtn.addEventListener("click", () => {
+      const poem =
+        `${pick(poemBits.openers)}\n` +
+        `${pick(poemBits.middles)}\n` +
+        `${pick(poemBits.vows)}\n` +
+        `${pick(poemBits.closers)}`;
+      poemPreview.textContent = poem;
+
+      // Open envelope automatically (if not locked)
+      if(!isLocked) setOpen(true);
+    });
+
+    /*********************
+     * 4) Wax Seal Designs + Lock
+     *********************/
+    function sealSVG(type){
+      // simple inline SVG icons
+      if(type === "heart"){
+        return `
+          <svg viewBox="0 0 64 64" fill="none">
+            <path d="M32 54s-18-10-24-22C3 19 11 10 20 12c6 1 9 6 12 10c3-4 6-9 12-10c9-2 17 7 12 20C50 44 32 54 32 54Z" fill="rgba(255,255,255,.92)"/>
+          </svg>`;
+      }
+      if(type === "rose"){
+        return `
+          <svg viewBox="0 0 64 64" fill="none">
+            <path d="M32 12c8 0 14 6 14 14c0 5-2 8-6 11c4 0 8 3 8 7c0 6-7 10-16 10S16 50 16 44c0-4 4-7 8-7c-4-3-6-6-6-11c0-8 6-14 14-14Z" fill="rgba(255,255,255,.92)"/>
+            <path d="M32 54v-8" stroke="rgba(255,255,255,.92)" stroke-width="4" stroke-linecap="round"/>
+          </svg>`;
+      }
+      if(type === "initials"){
+        const a = (yourName.value.trim().slice(0,1) || "Y").toUpperCase();
+        const b = (theirName.value.trim().slice(0,1) || "L").toUpperCase();
+        return `
+          <svg viewBox="0 0 64 64">
+            <text x="50%" y="54%" text-anchor="middle" font-size="28" font-family="Playfair Display" fill="rgba(255,255,255,.95)">${a}&${b}</text>
+          </svg>`;
+      }
+      if(type === "infinity"){
+        return `
+          <svg viewBox="0 0 64 64" fill="none">
+            <path d="M22 40c-5 0-9-4-9-9s4-9 9-9c8 0 12 18 20 18c5 0 9-4 9-9s-4-9-9-9c-8 0-12 18-20 18Z"
+              stroke="rgba(255,255,255,.92)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>`;
+      }
+      return `
+        <svg viewBox="0 0 64 64" fill="none">
+          <path d="M32 10l6 16h16l-13 10l5 16l-14-9l-14 9l5-16L10 26h16l6-16Z" fill="rgba(255,255,255,.92)"/>
+        </svg>`;
+    }
+
+    function applySealStyle(){
+      const type = sealSelect.value;
+
+      // color variations for seal background
+      const palette = {
+        heart: "radial-gradient(circle at 30% 30%, #ff9ac9, #ff5aa5 55%, #d43f86)",
+        rose: "radial-gradient(circle at 30% 30%, #ffd1e7, #ff5aa5 55%, #a61b5a)",
+        initials: "radial-gradient(circle at 30% 30%, #ffe3f1, #ff5aa5 55%, #7d1742)",
+        infinity: "radial-gradient(circle at 30% 30%, #ffd1e7, #ff5aa5 55%, #5b0f2c)",
+        star: "radial-gradient(circle at 30% 30%, #ffe9f4, #ff5aa5 55%, #8e2a59)",
+      };
+
+      waxSeal.style.background = palette[type] || palette.heart;
+      sealIconWrap.innerHTML = sealSVG(type);
+    }
+
+    sealSelect.addEventListener("change", () => {
+      applySealStyle();
+    });
+    yourName.addEventListener("input", applySealStyle);
+    theirName.addEventListener("input", applySealStyle);
+    applySealStyle();
+
+    function lockEnvelope(){
+      isLocked = true;
+      waxSeal.classList.remove("hidden");
+      setOpen(false);
+      lockHint.textContent = "Sealed 💗 Click the wax seal to unlock.";
+    }
+
+    function unlockEnvelope(){
+      isLocked = false;
+      waxSeal.classList.add("hidden");
+      lockHint.textContent = "";
+      setOpen(true);
+    }
+
+    lockBtn.addEventListener("click", () => {
+      if(isLocked) return;
+      lockEnvelope();
+    });
+
+    waxSeal.addEventListener("click", () => {
+      unlockEnvelope();
+    });
+
+    /*********************
+     * 5) Countdown (Valentine’s Day)
+     *********************/
+    // Change this date if you want:
+    // e.g. new Date("2026-02-14T00:00:00")
+    const target = new Date("2026-02-14T00:00:00");
+
+    const countdownInline = document.getElementById("countdownInline");
+    const countdownBoxes = document.getElementById("countdownBoxes");
+
+    function fmt(n){ return String(n).padStart(2,"0"); }
+
+    function renderCountdown(){
+      const now = new Date();
+      let diff = target.getTime() - now.getTime();
+
+      if(diff <= 0){
+        countdownInline.textContent = "It’s Valentine’s Day 💞";
+        countdownBoxes.innerHTML = `
+          <div class="countbox"><b>00</b><span>Days</span></div>
+          <div class="countbox"><b>00</b><span>Hours</span></div>
+          <div class="countbox"><b>00</b><span>Minutes</span></div>
+          <div class="countbox"><b>00</b><span>Seconds</span></div>`;
+        return;
+      }
+
+      const sec = Math.floor(diff / 1000);
+      const days = Math.floor(sec / 86400);
+      const hours = Math.floor((sec % 86400) / 3600);
+      const mins = Math.floor((sec % 3600) / 60);
+      const secs = sec % 60;
+
+      countdownInline.textContent = `${days}d ${fmt(hours)}:${fmt(mins)}:${fmt(secs)}`;
+      countdownBoxes.innerHTML = `
+        <div class="countbox"><b>${days}</b><span>Days</span></div>
+        <div class="countbox"><b>${fmt(hours)}</b><span>Hours</span></div>
+        <div class="countbox"><b>${fmt(mins)}</b><span>Minutes</span></div>
+        <div class="countbox"><b>${fmt(secs)}</b><span>Seconds</span></div>`;
+    }
+    setInterval(renderCountdown, 1000);
+    renderCountdown();
+
+    /*********************
+     * 6) Music Toggle (WebAudio “soft piano”)
+     *********************/
+    const musicBtn = document.getElementById("musicBtn");
+    let audioCtx = null;
+    let musicOn = false;
+    let musicTimer = null;
+
+    // Simple arpeggio using sine/triangle mix to feel soft.
+    function playNote(freq, when, duration){
+      if(!audioCtx) return;
+
+      const gain = audioCtx.createGain();
+      const o1 = audioCtx.createOscillator();
+      const o2 = audioCtx.createOscillator();
+
+      o1.type = "triangle";
+      o2.type = "sine";
+      o1.frequency.value = freq;
+      o2.frequency.value = freq * 2;
+
+      // envelope
+      gain.gain.setValueAtTime(0.0001, when);
+      gain.gain.exponentialRampToValueAtTime(0.18, when + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, when + duration);
+
+      // soft lowpass filter
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = "lowpass";
+      filter.frequency.value = 1200;
+
+      o1.connect(filter);
+      o2.connect(filter);
+      filter.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      o1.start(when);
+      o2.start(when);
+      o1.stop(when + duration + 0.02);
+      o2.stop(when + duration + 0.02);
+    }
+
+    function startMusic(){
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      const base = [261.63, 329.63, 392.00, 523.25]; // C, E, G, C
+      const pattern = [
+        {i:0, d:0.30}, {i:1, d:0.30}, {i:2, d:0.35}, {i:3, d:0.45},
+        {i:2, d:0.35}, {i:1, d:0.30},
+      ];
+
+      let step = 0;
+      musicTimer = setInterval(() => {
+        const now = audioCtx.currentTime;
+        const p = pattern[step % pattern.length];
+        const note = base[p.i] * (step % 12 === 0 ? 0.5 : 1); // occasional lower note
+        playNote(note, now + 0.01, p.d);
+        step++;
+      }, 320);
+    }
+
+    function stopMusic(){
+      if(musicTimer) clearInterval(musicTimer);
+      musicTimer = null;
+    }
+
+    musicBtn.addEventListener("click", async () => {
+      musicOn = !musicOn;
+      musicBtn.setAttribute("aria-pressed", String(musicOn));
+      musicBtn.textContent = musicOn ? "🎹 Music: On" : "🎹 Music: Off";
+
+      if(musicOn){
+        try{
+          audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+          await audioCtx.resume();
+          startMusic();
+        }catch(e){
+          console.warn("Audio blocked:", e);
+          musicOn = false;
+          musicBtn.setAttribute("aria-pressed", "false");
+          musicBtn.textContent = "🎹 Music: Off";
+        }
+      }else{
+        stopMusic();
+      }
+    });
+
+    /*********************
+     * 7) Photo Gallery Upload
+     *********************/
+    const photoInput = document.getElementById("photoInput");
+    const gallery = document.getElementById("gallery");
+    const galleryFrame = document.getElementById("galleryFrame");
+    const borderSelect = document.getElementById("borderSelect");
+
+    // Persist images in memory only (simple). For persistence, you can store in localStorage (base64) but can get big.
+    const photos = [];
+
+    function renderGallery(){
+      gallery.innerHTML = "";
+      photos.forEach((src, idx) => {
+        const wrap = document.createElement("div");
+        wrap.className = "photo";
+        wrap.innerHTML = `
+          <img alt="photo ${idx+1}" src="${src}"/>
+          <button class="remove" title="Remove">✕</button>
+        `;
+        wrap.querySelector(".remove").addEventListener("click", () => {
+          photos.splice(idx,1);
+          renderGallery();
+        });
+        gallery.appendChild(wrap);
+      });
+
+      // show placeholders if empty
+      if(photos.length === 0){
+        for(let i=0;i<6;i++){
+          const p = document.createElement("div");
+          p.className = "photo";
+          p.style.display = "grid";
+          p.style.placeItems = "center";
+          p.style.color = "rgba(255,255,255,.7)";
+          p.innerHTML = `<div style="text-align:center; padding:10px;">
+            <div style="font-size:18px;">📷</div>
+            <div style="font-size:12px; margin-top:6px;">Add your photos</div>
+          </div>`;
+          gallery.appendChild(p);
+        }
+      }
+    }
+    renderGallery();
+
+    photoInput.addEventListener("change", async (e) => {
+      const files = Array.from(e.target.files || []);
+      for(const f of files){
+        if(!f.type.startsWith("image/")) continue;
+        const src = await fileToDataURL(f);
+        photos.push(src);
+      }
+      renderGallery();
+      photoInput.value = "";
+    });
+
+    function fileToDataURL(file){
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    borderSelect.addEventListener("change", () => {
+      galleryFrame.classList.remove("frame-none","frame-roses","frame-lilies","frame-vines");
+      galleryFrame.classList.add(borderSelect.value);
+    });
+
+    /*********************
+     * 8) Map Pins (Leaflet)
+     *********************/
+    // Default center: Kuala Lumpur-ish
+    const map = L.map('map', { zoomControl: true }).setView([3.1390, 101.6869], 11);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+
+    const pins = [];
+
+    function addPin(latlng, label){
+      const m = L.marker(latlng).addTo(map);
+      m.bindPopup(`<b>${escapeHtml(label)}</b><br/><small>${latlng.lat.toFixed(5)}, ${latlng.lng.toFixed(5)}</small>`);
+      pins.push({ latlng, label });
+      m.openPopup();
+    }
+
+    map.on("click", (e) => {
+      const label = prompt("Name this memory spot 💞 (e.g., First date, Our café, Vacation)", "Our memory");
+      if(!label) return;
+      addPin(e.latlng, label);
+    });
+
+    function escapeHtml(str){
+      return String(str).replace(/[&<>"']/g, s => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+      })[s]);
+    }
+  </script>
+</body>
+</html>
